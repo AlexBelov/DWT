@@ -1,0 +1,5 @@
+H:\11 sem\Wavelet\Wavelet\bin\Debug\Wavelet.exe.config
+H:\11 sem\Wavelet\Wavelet\bin\Debug\Wavelet.exe
+H:\11 sem\Wavelet\Wavelet\bin\Debug\Wavelet.pdb
+H:\11 sem\Wavelet\Wavelet\obj\x86\Debug\Wavelet.exe
+H:\11 sem\Wavelet\Wavelet\obj\x86\Debug\Wavelet.pdb
