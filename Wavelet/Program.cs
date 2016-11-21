@@ -16,6 +16,7 @@ namespace Wavelet
             private double[,] matrix;
             private double[,] outMatrix;
             private double[,] beautifiedMatrix;
+            public double threshold = 0.005;
             //private double[] CL = { 1 / Math.Sqrt(2), 1 / Math.Sqrt(2) };
             private double[] CL = { 
                 (1 + Math.Sqrt(3)) / (4 * Math.Sqrt(2)),
@@ -33,6 +34,12 @@ namespace Wavelet
                 beautifiedMatrix = new double[inImage.Width, inImage.Height];
                 BitmapToMatrix();
                 HpfCoeffs();
+                SaveInputImage();
+            }
+
+            public void SaveInputImage()
+            {
+                inImage.Save("an_Input.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
             }
 
             private void HpfCoeffs()
@@ -214,33 +221,79 @@ namespace Wavelet
             public void Processing()
             {
                 CalculateDWT();
-                Beautify();
+
+            }
+
+            private void Normalize()
+            {
+                double max = -1000;
+                double min = 1000;
+
+                for (int x = 0; x < inImage.Height; x++)
+                {
+                    for (int y = 0; y < inImage.Width; y++)
+                    {
+                        if (beautifiedMatrix[x, y] > max)
+                        {
+                            max = beautifiedMatrix[x, y];
+                        }
+
+                        if (beautifiedMatrix[x, y] < min)
+                        {
+                            min = beautifiedMatrix[x, y];
+                        }
+                    }
+                }
+
+                double disp = Math.Abs(min) + Math.Abs(max);
+                double coef = 255.0 / disp;
+
+                for (int x = 0; x < inImage.Height; x++)
+                {
+                    for (int y = 0; y < inImage.Width; y++)
+                    {
+                        beautifiedMatrix[x, y] += Math.Abs(min);
+                        beautifiedMatrix[x, y] *= coef;
+                    }
+                }
             }
 
             public void SaveImage()
             {
                 Bitmap outImage = new Bitmap(inImage.Width, inImage.Height);
-
+                Threshold();
+                Beautify();
+                Normalize();
                 for (int x = 0; x < outImage.Width; x++)
                 {
                     for (int y = 0; y < outImage.Height; y++)
                     {
-                        double outputPixel = Math.Abs(beautifiedMatrix[x, y] * 140);
-                        if (outputPixel > 255)
-                        {
-                            outputPixel = 255;
-                        }
-                        int e = System.Convert.ToInt32(outputPixel);
+                        double outputPixel = beautifiedMatrix[x, y];
+                        int e = System.Convert.ToByte(outputPixel);
                         Color pixel = Color.FromArgb(e, e, e);
                         outImage.SetPixel(x, y, pixel);
                     }
                 }
 
-                outImage.Save("Intermediate.png");
+                outImage.Save("an_Intermediate.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+            }
+
+            private void Threshold()
+            {
+                for (int i = 0; i < inImage.Height; i++)
+                {
+                    for (int j = 0; j < inImage.Height; j++)
+                    {
+                        if (Math.Abs(outMatrix[i, j]) < threshold) {
+                            outMatrix[i, j] = 0;
+                        }
+                    }
+                }
             }
 
             public void SaveMatrix()
             {
+                Threshold();
                 Serialize(outMatrix, "Intermediate.dwt");
             }
 
@@ -404,26 +457,56 @@ namespace Wavelet
                 Array.Copy(matrixT, outMatrix, dim * dim);
             }
 
+            private void Normalize()
+            {
+                double max = -1000;
+                double min = 1000;
+
+                for (int x = 0; x < dim; x++)
+                {
+                    for (int y = 0; y < dim; y++)
+                    {
+                        if (outMatrix[x, y] > max)
+                        {
+                            max = outMatrix[x, y];
+                        }
+
+                        if (outMatrix[x, y] < min)
+                        {
+                            min = outMatrix[x, y];
+                        }
+                    }
+                }
+
+                double disp = Math.Abs(min) + Math.Abs(max);
+                double coef = 255.0 / disp;
+
+                for (int x = 0; x < dim; x++)
+                {
+                    for (int y = 0; y < dim; y++)
+                    {
+                        outMatrix[x, y] += Math.Abs(min);
+                        outMatrix[x, y] *= coef;
+                    }
+                }
+            }
+
             public void SaveImage()
             {
                 Bitmap outImage = new Bitmap(dim, dim);
-
+                Normalize();
                 for (int x = 0; x < outImage.Width; x++)
                 {
                     for (int y = 0; y < outImage.Height; y++)
                     {
-                        double outputPixel = Math.Abs(outMatrix[x, y] * 255);
-                        if (outputPixel > 255)
-                        {
-                            outputPixel = 255;
-                        }
-                        int e = System.Convert.ToInt32(outputPixel);
+                        double outputPixel = outMatrix[x, y];
+                        int e = System.Convert.ToByte(outputPixel);
                         Color pixel = Color.FromArgb(e, e, e);
                         outImage.SetPixel(x, y, pixel);
                     }
                 }
 
-                outImage.Save("Output.png");
+                outImage.Save("an_Output.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
             }
         }
 
@@ -431,6 +514,7 @@ namespace Wavelet
         {
             //DWT dwt = new DWT("Boat.png");
             DWT dwt = new DWT("Lenna.jpg");
+            dwt.threshold = 0.005;
             dwt.Processing();
             dwt.SaveImage();
             dwt.SaveMatrix();
