@@ -263,6 +263,7 @@ namespace Wavelet
                 Bitmap outImage = new Bitmap(inImage.Width, inImage.Height);
                 Threshold();
                 Beautify();
+                //Array.Copy(outMatrix, beautifiedMatrix, inImage.Width * inImage.Height);
                 Normalize();
                 for (int x = 0; x < outImage.Width; x++)
                 {
@@ -512,9 +513,9 @@ namespace Wavelet
 
         static void Main(string[] args)
         {
-            //DWT dwt = new DWT("Boat.png");
-            DWT dwt = new DWT("Lenna.jpg");
-            dwt.threshold = 0.005;
+            DWT dwt = new DWT("Boat.png");
+            //DWT dwt = new DWT("Lenna.jpg");
+            dwt.threshold = 0.5;
             dwt.Processing();
             dwt.SaveImage();
             dwt.SaveMatrix();
